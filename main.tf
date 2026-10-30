@@ -24,24 +24,6 @@ resource "aws_s3_bucket_public_access_block" "this" {
   restrict_public_buckets = true
 }
 
-# Auto-expires everything written to the bucket — QA test runs shouldn't need to remember to clean up
-# objects they wrote (the bucket itself is still destroyed explicitly via `terraform destroy`, same as
-# before; this only bounds what a *live* test bucket can accumulate between runs).
-resource "aws_s3_bucket_lifecycle_configuration" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    id     = "expire-test-objects"
-    status = "Enabled"
-
-    filter {}
-
-    expiration {
-      days = var.object_expiration_days
-    }
-
-    noncurrent_version_expiration {
-      noncurrent_days = var.object_expiration_days
-    }
-  }
-}
+# QA fixture branch for DUPLOAI-3856: lifecycle configuration removed on purpose so that planning this
+# branch against state applied from main produces a single "1 to destroy" diff for
+# aws_s3_bucket_lifecycle_configuration.this, matching the ticket's repro precondition.
